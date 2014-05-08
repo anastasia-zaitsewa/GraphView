@@ -1,5 +1,2 @@
 language: android
-jdk:
-  - oraclejdk7
-  - openjdk7
-  - openjdk6
+install: ant deps
