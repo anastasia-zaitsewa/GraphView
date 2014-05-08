@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="GraphView">
+        <attr name="lineColor" format="color"/>
+        <attr name="spacingX" format="dimension"/>
+        <attr name="spacingY" format="dimension"/>
+        <attr name="textColor" format="color"/>
+        <attr name="textSize" format="dimension"/>
+        <attr name="labelPlace" format="dimension"/>
+        <attr name="fillColor" format="color"/>
+        <attr name="levelColor" format="color"/>
+    </declare-styleable>
+</resources>
