@@ -292,8 +292,7 @@ public class GraphView extends View implements Observer {
             pointsPX[i * 2] = x;
             pointsPX[i * 2 + 1] = y;
         }
-        pathFill = new Path();
-        pathFill.addPath(path);
+        pathFill = new Path(path);
         pathFill.lineTo(
                 width - 1,
                 height - labelPlacePX - 1
