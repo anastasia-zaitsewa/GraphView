@@ -59,7 +59,6 @@ public class GraphView extends View implements Observer {
     private float textHeight;
     private Drawable pointDrawable;
     private float defaultAxisLabelMarginPX;
-    private float pointRadiusPX;
     private float marginPX;
 
     public GraphView(Context context, AttributeSet attrs) {
@@ -73,6 +72,7 @@ public class GraphView extends View implements Observer {
             textColor = a.getColor(R.styleable.GraphView_textColor, DEFAULT_TEXT_COLOR);
             fillColor = a.getColor(R.styleable.GraphView_fillColor, DEFAULT_FILL_COLOR);
             levelColor = a.getColor(R.styleable.GraphView_levelColor, DEFAULT_LEVEL_COLOR);
+            pointDrawable = a.getDrawable(R.styleable.GraphView_pointDrawable);
 
             textSize = a.getDimension(R.styleable.GraphView_textSize,
                     TypedValue.applyDimension(
@@ -91,7 +91,7 @@ public class GraphView extends View implements Observer {
             );
             spacingPXY = a.getDimensionPixelOffset(
                     R.styleable.GraphView_spacingY,
-                    (int)TypedValue.applyDimension(
+                    (int) TypedValue.applyDimension(
                             TypedValue.COMPLEX_UNIT_DIP,
                             DEFAULT_SPACING_DP,
                             getResources().getDisplayMetrics()
@@ -117,6 +117,8 @@ public class GraphView extends View implements Observer {
         textColor = DEFAULT_TEXT_COLOR;
         fillColor = DEFAULT_FILL_COLOR;
         levelColor = DEFAULT_LEVEL_COLOR;
+        pointDrawable = getResources().getDrawable(R.drawable.point);
+
         textSize = TypedValue.applyDimension(
                 TypedValue.COMPLEX_UNIT_DIP,
                 DEFAULT_TEXT_SIZE_SP,
@@ -159,12 +161,6 @@ public class GraphView extends View implements Observer {
         textPaint.setColor(textColor);
         textPaint.setTextSize(textSize);
 
-        pointDrawable = getResources().getDrawable(R.drawable.point);
-        pointRadiusPX = TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_DIP,
-                getResources().getDimension(R.dimen.point_radius),
-                getResources().getDisplayMetrics()
-        );
         defaultAxisLabelMarginPX = TypedValue.applyDimension(
                 TypedValue.COMPLEX_UNIT_DIP,
                 DEFAULT_AXIS_LABEL_MARGIN_DP,
@@ -253,10 +249,10 @@ public class GraphView extends View implements Observer {
                 float y = pointsPX[i + 1];
 
                 pointDrawable.setBounds(
-                        (int) (x - pointRadiusPX),
-                        (int) (y - pointRadiusPX),
-                        (int) (x + pointRadiusPX),
-                        (int) (y + pointRadiusPX)
+                        (int) (x - pointDrawable.getIntrinsicWidth() / 2),
+                        (int) (y - pointDrawable.getIntrinsicHeight() / 2),
+                        (int) (x + pointDrawable.getIntrinsicWidth() / 2),
+                        (int) (y + pointDrawable.getIntrinsicHeight() / 2)
                 );
                 pointDrawable.draw(canvas);
             }
