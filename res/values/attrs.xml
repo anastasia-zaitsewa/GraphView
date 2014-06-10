@@ -9,5 +9,6 @@
         <attr name="labelPlace" format="dimension"/>
         <attr name="fillColor" format="color"/>
         <attr name="levelColor" format="color"/>
+        <attr name="pointDrawable" format="reference"/>
     </declare-styleable>
 </resources>

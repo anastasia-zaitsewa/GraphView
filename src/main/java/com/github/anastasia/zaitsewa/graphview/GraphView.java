@@ -72,6 +72,7 @@ public class GraphView extends View implements Observer {
             textColor = a.getColor(R.styleable.GraphView_textColor, DEFAULT_TEXT_COLOR);
             fillColor = a.getColor(R.styleable.GraphView_fillColor, DEFAULT_FILL_COLOR);
             levelColor = a.getColor(R.styleable.GraphView_levelColor, DEFAULT_LEVEL_COLOR);
+            pointDrawable = a.getDrawable(R.styleable.GraphView_pointDrawable);
 
             textSize = a.getDimension(R.styleable.GraphView_textSize,
                     TypedValue.applyDimension(
@@ -116,6 +117,8 @@ public class GraphView extends View implements Observer {
         textColor = DEFAULT_TEXT_COLOR;
         fillColor = DEFAULT_FILL_COLOR;
         levelColor = DEFAULT_LEVEL_COLOR;
+        pointDrawable = getResources().getDrawable(R.drawable.point);
+
         textSize = TypedValue.applyDimension(
                 TypedValue.COMPLEX_UNIT_DIP,
                 DEFAULT_TEXT_SIZE_SP,
@@ -157,8 +160,6 @@ public class GraphView extends View implements Observer {
         textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         textPaint.setColor(textColor);
         textPaint.setTextSize(textSize);
-
-        pointDrawable = getResources().getDrawable(R.drawable.point);
 
         defaultAxisLabelMarginPX = TypedValue.applyDimension(
                 TypedValue.COMPLEX_UNIT_DIP,
