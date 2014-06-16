@@ -54,8 +54,8 @@ public class GraphView extends View implements Observer {
     private double maxY;
     private double maxX;
     private double minX;
-    private List<Pair<Float, String>> labelsX = new ArrayList<Pair<Float, String>>();
-    private List<Pair<Float, String>> labelsY = new ArrayList<Pair<Float, String>>();
+    private final List<Pair<Float, String>> labelsX = new ArrayList<Pair<Float, String>>();
+    private final List<Pair<Float, String>> labelsY = new ArrayList<Pair<Float, String>>();
     private float textHeight;
     private Drawable pointDrawable;
     private float defaultAxisLabelMarginPX;
@@ -349,6 +349,7 @@ public class GraphView extends View implements Observer {
     public void update(Observable observable, Object data) {
         points = pointsProvider.getPoints();
         if (points.isEmpty()) {
+            clear();
             return;
         }
 
@@ -357,6 +358,14 @@ public class GraphView extends View implements Observer {
         maxX = points.get(points.size() - 1).getX();
         minX = points.get(0).getX();
         changePlot();
+        invalidate();
+    }
+
+    private void clear() {
+        path = null;
+        pathFill = null;
+        labelsX.clear();
+        labelsY.clear();
         invalidate();
     }
 
