@@ -7,13 +7,12 @@ import java.util.Observer;
 /**
  * Functions to implement, to provide a points for Graph
  */
-public interface PointsProvider {
+public interface PointsProvider<T extends Point> {
 
     /**
-     * @return List of Points(represents by couple
-     * of double coordinates X and Y)
+     * @return List of {@link com.github.anastasia.zaitsewa.graphview.Point}
      */
-    List<Point> getPoints();
+    List<T> getPoints();
 
     /**
      * Reflect the value representation of coordinate to readable state

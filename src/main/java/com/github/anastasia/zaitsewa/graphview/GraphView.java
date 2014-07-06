@@ -20,13 +20,14 @@ public class GraphView extends View implements Observer {
     private static final int MARGIN_DP = 5;
     private static final int DEFAULT_LABEL_PLACE_DP = 15;
     private static final int DEFAULT_TEXT_SIZE_SP = 8;
-    private static final int DEFAULT_SPACING_DP = 20;
+    private static final int DEFAULT_SPACING_BETWEEN_LABELS_DP = 20;
     private static final int DEFAULT_AXIS_LABEL_MARGIN_DP = 2;
     private static final int DEFAULT_LINE_COLOR = Color.BLACK;
     private static final int DEFAULT_TEXT_COLOR = Color.DKGRAY;
     private static final int DEFAULT_FILL_COLOR = 0x44000000;
     private static final int DEFAULT_LEVEL_COLOR = 0x44888888;
-
+    private final List<Pair<Float, String>> labelsX = new ArrayList<Pair<Float, String>>();
+    private final List<Pair<Float, String>> labelsY = new ArrayList<Pair<Float, String>>();
     private int lineColor;
     private int textColor;
     private int fillColor;
@@ -35,13 +36,12 @@ public class GraphView extends View implements Observer {
     private float spacingPXX;
     private float spacingPXY;
     private float labelPlacePX;
-
+    private boolean isXAxisEnable = true;
+    private boolean isYAxisEnable = true;
     private Paint linePaint;
     private Paint textPaint;
     private Paint fillPaint;
     private Paint levelPaint;
-
-
     private int width;
     private int height;
     private PointsProvider pointsProvider;
@@ -54,8 +54,6 @@ public class GraphView extends View implements Observer {
     private double maxY;
     private double maxX;
     private double minX;
-    private final List<Pair<Float, String>> labelsX = new ArrayList<Pair<Float, String>>();
-    private final List<Pair<Float, String>> labelsY = new ArrayList<Pair<Float, String>>();
     private float textHeight;
     private Drawable pointDrawable;
     private float defaultAxisLabelMarginPX;
@@ -68,6 +66,8 @@ public class GraphView extends View implements Observer {
                 R.styleable.GraphView,
                 0, 0);
         try {
+            isXAxisEnable = a.getBoolean(R.styleable.GraphView_isXAxisEnable, true);
+            isYAxisEnable = a.getBoolean(R.styleable.GraphView_isYAxisEnable, true);
             lineColor = a.getColor(R.styleable.GraphView_lineColor, DEFAULT_LINE_COLOR);
             textColor = a.getColor(R.styleable.GraphView_textColor, DEFAULT_TEXT_COLOR);
             fillColor = a.getColor(R.styleable.GraphView_fillColor, DEFAULT_FILL_COLOR);
@@ -85,7 +85,7 @@ public class GraphView extends View implements Observer {
                     R.styleable.GraphView_spacingX,
                     (int) TypedValue.applyDimension(
                             TypedValue.COMPLEX_UNIT_DIP,
-                            DEFAULT_SPACING_DP,
+                            DEFAULT_SPACING_BETWEEN_LABELS_DP,
                             getResources().getDisplayMetrics()
                     )
             );
@@ -93,7 +93,7 @@ public class GraphView extends View implements Observer {
                     R.styleable.GraphView_spacingY,
                     (int) TypedValue.applyDimension(
                             TypedValue.COMPLEX_UNIT_DIP,
-                            DEFAULT_SPACING_DP,
+                            DEFAULT_SPACING_BETWEEN_LABELS_DP,
                             getResources().getDisplayMetrics()
                     )
             );
@@ -126,13 +126,13 @@ public class GraphView extends View implements Observer {
         );
         spacingPXX = TypedValue.applyDimension(
                 TypedValue.COMPLEX_UNIT_DIP,
-                DEFAULT_SPACING_DP,
+                DEFAULT_SPACING_BETWEEN_LABELS_DP,
                 getResources().getDisplayMetrics()
 
         );
         spacingPXY = TypedValue.applyDimension(
                 TypedValue.COMPLEX_UNIT_DIP,
-                DEFAULT_SPACING_DP,
+                DEFAULT_SPACING_BETWEEN_LABELS_DP,
                 getResources().getDisplayMetrics()
 
         );
@@ -176,56 +176,51 @@ public class GraphView extends View implements Observer {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-
-        //Drawing Axis
-        canvas.drawLine(
-                labelPlacePX, height - labelPlacePX - 1,
-                width - 1, height - labelPlacePX - 1,
-                linePaint
-        );
-
-        canvas.drawLine(
-                labelPlacePX, height - labelPlacePX - 1,
-                labelPlacePX, 0,
-                linePaint
-        );
-
-        //Drawing Axis Labels and Levels
-        if (labelsX == null || labelsY == null) {
-            return;
-        }
-        int size = labelsX.size();
-        textPaint.setTextAlign(Paint.Align.LEFT);
-        for (int i = 0; i < size; i++) {
-            Pair<Float, String> labelX = labelsX.get(i);
-            canvas.drawText(
-                    labelX.second,
-                    labelX.first,
-                    height - labelPlacePX + textHeight + defaultAxisLabelMarginPX,
-                    textPaint
-            );
-        }
-
-        size = labelsY.size();
-        textPaint.setTextAlign(Paint.Align.RIGHT);
-        for (int i = 0; i < size; i++) {
-            Pair<Float, String> labelY = labelsY.get(i);
-            canvas.drawText(
-                    labelY.second,
-                    labelPlacePX - defaultAxisLabelMarginPX,
-                    labelY.first,
-                    textPaint
-            );
-            //Draw Levels
-            float levelY = labelY.first - textHeight / 2;
+        //Drawing X-Axis and X-Labels
+        if (isXAxisEnable) {
             canvas.drawLine(
-                    labelPlacePX,
-                    levelY,
-                    width - 1,
-                    levelY,
-                    levelPaint);
+                    labelPlacePX, height - labelPlacePX - 1,
+                    width - 1, height - labelPlacePX - 1,
+                    linePaint
+            );
+
+            textPaint.setTextAlign(Paint.Align.LEFT);
+            for (Pair<Float, String> labelX : labelsX) {
+                canvas.drawText(
+                        labelX.second,
+                        labelX.first,
+                        height - labelPlacePX + textHeight + defaultAxisLabelMarginPX,
+                        textPaint
+                );
+            }
         }
 
+        if (isYAxisEnable) {
+            //Drawing Y-Axis, Y-Labels and Y-Levels
+            canvas.drawLine(
+                    labelPlacePX, height - labelPlacePX - 1,
+                    labelPlacePX, 0,
+                    linePaint
+            );
+
+            textPaint.setTextAlign(Paint.Align.RIGHT);
+            for (Pair<Float, String> labelY : labelsY) {
+                canvas.drawText(
+                        labelY.second,
+                        labelPlacePX - defaultAxisLabelMarginPX,
+                        labelY.first,
+                        textPaint
+                );
+                //Draw Levels
+                float levelY = labelY.first - textHeight / 2;
+                canvas.drawLine(
+                        labelPlacePX,
+                        levelY,
+                        width - 1,
+                        levelY,
+                        levelPaint);
+            }
+        }
 
         if (path == null) {
             return;
@@ -256,11 +251,7 @@ public class GraphView extends View implements Observer {
                 );
                 pointDrawable.draw(canvas);
             }
-
-
         }
-
-
     }
 
     private void changePlot() {

@@ -10,5 +10,7 @@
         <attr name="fillColor" format="color"/>
         <attr name="levelColor" format="color"/>
         <attr name="pointDrawable" format="reference"/>
+        <attr name="isXAxisEnable" format="boolean"/>
+        <attr name="isYAxisEnable" format="boolean"/>
     </declare-styleable>
 </resources>
