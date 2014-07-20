@@ -176,8 +176,8 @@ public class GraphView extends View implements Observer {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        //Drawing X-Axis and X-Labels
         if (isXAxisEnable) {
+            //Drawing X-Axis and X-Labels
             canvas.drawLine(
                     labelPlacePX, height - labelPlacePX - 1,
                     width - 1, height - labelPlacePX - 1,
