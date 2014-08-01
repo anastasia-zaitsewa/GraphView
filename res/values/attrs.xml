@@ -12,5 +12,7 @@
         <attr name="graphView_pointDrawable" format="reference"/>
         <attr name="graphView_isXAxisEnable" format="boolean"/>
         <attr name="graphView_isYAxisEnable" format="boolean"/>
+        <attr name="graphView_isLabelsEnable" format="boolean"/>
+        <attr name="graphView_isFillEnable" format="boolean"/>
     </declare-styleable>
 </resources>
