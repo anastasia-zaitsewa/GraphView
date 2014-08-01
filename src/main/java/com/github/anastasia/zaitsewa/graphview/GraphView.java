@@ -17,6 +17,7 @@ import java.util.*;
  */
 public class GraphView extends View implements Observer {
 
+    private static final String ZERO_LABEL = "0";
     private static final int MARGIN_DP = 5;
     private static final int DEFAULT_LABEL_PLACE_DP = 15;
     private static final int DEFAULT_TEXT_SIZE_SP = 8;
@@ -36,10 +37,10 @@ public class GraphView extends View implements Observer {
     private float spacingPXX;
     private float spacingPXY;
     private float labelPlacePX;
-    private boolean isXAxisEnable;
-    private boolean isYAxisEnable;
-    private boolean isLabelsEnable;
-    private boolean isFillEnable;
+    private boolean enableXAxis;
+    private boolean enableYAxis;
+    private boolean enableLabels;
+    private boolean enableFill;
     private Paint linePaint;
     private Paint textPaint;
     private Paint fillPaint;
@@ -68,10 +69,10 @@ public class GraphView extends View implements Observer {
                 R.styleable.GraphView,
                 0, 0);
         try {
-            isXAxisEnable = a.getBoolean(R.styleable.GraphView_graphView_isXAxisEnable, true);
-            isYAxisEnable = a.getBoolean(R.styleable.GraphView_graphView_isYAxisEnable, true);
-            isLabelsEnable = a.getBoolean(R.styleable.GraphView_graphView_isLabelsEnable, true);
-            isFillEnable = a.getBoolean(R.styleable.GraphView_graphView_isFillEnable, true);
+            enableXAxis = a.getBoolean(R.styleable.GraphView_graphView_enableXAxis, true);
+            enableYAxis = a.getBoolean(R.styleable.GraphView_graphView_enableYAxis, true);
+            enableLabels = a.getBoolean(R.styleable.GraphView_graphView_enableLabels, true);
+            enableFill = a.getBoolean(R.styleable.GraphView_graphView_enableFill, true);
             lineColor = a.getColor(R.styleable.GraphView_graphView_lineColor, DEFAULT_LINE_COLOR);
             textColor = a.getColor(R.styleable.GraphView_graphView_textColor, DEFAULT_TEXT_COLOR);
             fillColor = a.getColor(R.styleable.GraphView_graphView_fillColor, DEFAULT_FILL_COLOR);
@@ -117,10 +118,10 @@ public class GraphView extends View implements Observer {
 
     public GraphView(Context context) {
         super(context);
-        isXAxisEnable = true;
-        isYAxisEnable = true;
-        isLabelsEnable = true;
-        isFillEnable = true;
+        enableXAxis = true;
+        enableYAxis = true;
+        enableLabels = true;
+        enableFill = true;
         lineColor = DEFAULT_LINE_COLOR;
         textColor = DEFAULT_TEXT_COLOR;
         fillColor = DEFAULT_FILL_COLOR;
@@ -184,7 +185,7 @@ public class GraphView extends View implements Observer {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        if (isXAxisEnable) {
+        if (enableXAxis) {
             //Drawing X-Axis
             canvas.drawLine(
                     labelPlacePX, height - labelPlacePX - 1,
@@ -192,7 +193,7 @@ public class GraphView extends View implements Observer {
                     linePaint
             );
 
-            if (isLabelsEnable) {
+            if (enableLabels) {
                 //Drawing Labels
                 textPaint.setTextAlign(Paint.Align.LEFT);
                 for (Pair<Float, String> labelX : labelsX) {
@@ -206,7 +207,7 @@ public class GraphView extends View implements Observer {
             }
         }
 
-        if (isYAxisEnable) {
+        if (enableYAxis) {
             //Drawing Y-Axis
             canvas.drawLine(
                     labelPlacePX, height - labelPlacePX - 1,
@@ -215,7 +216,7 @@ public class GraphView extends View implements Observer {
             );
 
 
-            if (isLabelsEnable) {
+            if (enableLabels) {
                 textPaint.setTextAlign(Paint.Align.RIGHT);
                 for (Pair<Float, String> labelY : labelsY) {
                     //Drawing Y-Labels
@@ -242,7 +243,7 @@ public class GraphView extends View implements Observer {
             return;
         }
 
-        if (isFillEnable) {
+        if (enableFill) {
             //Drawing Fill for Plot
             canvas.drawPath(pathFill, fillPaint);
         }
@@ -298,7 +299,7 @@ public class GraphView extends View implements Observer {
             pointsPX[i * 2 + 1] = y;
         }
 
-        if (isFillEnable) {
+        if (enableFill) {
             //Construct path for fill
             pathFill = new Path(path);
             pathFill.lineTo(
@@ -319,7 +320,7 @@ public class GraphView extends View implements Observer {
         labelsX.clear();
         labelsY.clear();
 
-        if (isXAxisEnable && isLabelsEnable) {
+        if (enableXAxis && enableLabels) {
             //Part for X axis
             double scaleStepX = pointsProvider.getScaleStepX();
             labelsX.clear();
@@ -335,14 +336,13 @@ public class GraphView extends View implements Observer {
             textHeight = rect.height();
         }
 
-        if (isYAxisEnable && isLabelsEnable) {
+        if (enableYAxis && enableLabels) {
             //Part for Y axis
             double scaleStepY = pointsProvider.getScaleStepY();
             labelsY.clear();
 
-            String zeroLabel = "0";
-            textPaint.getTextBounds(zeroLabel, 0, zeroLabel.length(), rect);
-            labelsY.add(new Pair<Float, String>(height - labelPlacePX + rect.height() / 2, zeroLabel));
+            textPaint.getTextBounds(ZERO_LABEL, 0, ZERO_LABEL.length(), rect);
+            labelsY.add(new Pair<Float, String>(height - labelPlacePX + rect.height() / 2, ZERO_LABEL));
 
             lastLabelPX = height - labelPlacePX - rect.height() / 2;
             for (double y = 0; y <= maxY; y += scaleStepY) {

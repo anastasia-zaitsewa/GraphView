@@ -10,9 +10,9 @@
         <attr name="graphView_fillColor" format="color"/>
         <attr name="graphView_levelColor" format="color"/>
         <attr name="graphView_pointDrawable" format="reference"/>
-        <attr name="graphView_isXAxisEnable" format="boolean"/>
-        <attr name="graphView_isYAxisEnable" format="boolean"/>
-        <attr name="graphView_isLabelsEnable" format="boolean"/>
-        <attr name="graphView_isFillEnable" format="boolean"/>
+        <attr name="graphView_enableXAxis" format="boolean"/>
+        <attr name="graphView_enableYAxis" format="boolean"/>
+        <attr name="graphView_enableLabels" format="boolean"/>
+        <attr name="graphView_enableFill" format="boolean"/>
     </declare-styleable>
 </resources>
