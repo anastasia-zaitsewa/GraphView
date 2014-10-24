@@ -2,14 +2,22 @@ package com.github.anastasia.zaitsewa.graphview;
 
 import android.content.Context;
 import android.content.res.TypedArray;
-import android.graphics.*;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Path;
+import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.util.Pair;
 import android.util.TypedValue;
 import android.view.View;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Observable;
+import java.util.Observer;
 
 /**
  * Class for drawing custom Graph
@@ -47,11 +55,10 @@ public class GraphView extends View implements Observer {
     private Paint levelPaint;
     private int width;
     private int height;
-    private PointsProvider pointsProvider;
-    private List<Point> points;
-    private float[] pointsPX;
-    private Path path;
-    private Path pathFill;
+    private List<PointsProvider> providers = new ArrayList<PointsProvider>();
+    private List<Pair<Float, Float>> pointsPX = new ArrayList<Pair<Float, Float>>();
+    private List<Path> paths = new ArrayList<Path>();
+    private List<Path> fillPaths = new ArrayList<Path>();
     private float pxProY;
     private float pxProX;
     private double maxY;
@@ -239,28 +246,33 @@ public class GraphView extends View implements Observer {
             }
         }
 
-        if (path == null) {
+        if (paths == null) {
             return;
         }
 
         if (enableFill) {
-            //Drawing Fill for Plot
-            canvas.drawPath(pathFill, fillPaint);
+            //Drawing Fillings for Plot
+            for (Path fillPath : fillPaths) {
+                canvas.drawPath(fillPath, fillPaint);
+            }
         }
 
-        //Drawing Plot
-        canvas.drawPath(path, linePaint);
+        //Drawing Plots
+        for (Path path : paths) {
+            canvas.drawPath(path, linePaint);
+        }
 
         //Drawing Points
         if (pointsPX == null) {
             return;
         }
 
+        //TODO:Add ability to set or reset points for each plot
         if (pointDrawable != null) {
 
-            for (int i = 0; i < pointsPX.length; i = i + 2) {
-                float x = pointsPX[i];
-                float y = pointsPX[i + 1];
+            for (Pair<Float, Float> point : pointsPX) {
+                float x = point.first;
+                float y = point.second;
 
                 pointDrawable.setBounds(
                         (int) (x - pointDrawable.getIntrinsicWidth() / 2),
@@ -277,31 +289,36 @@ public class GraphView extends View implements Observer {
         pxProY = (height - marginPX - labelPlacePX) / (float) maxY;
         pxProX = (width - labelPlacePX) / (float) (maxX - minX);
 
-        changePath(labelPlacePX);
-        changeLabels(labelPlacePX);
+        pointsPX.clear();
+
+        for (PointsProvider provider : providers) {
+            changePath(provider.getPoints());
+        }
+
+        changeLabels();
     }
 
-    private void changePath(float labelPlacePX) {
-        path = new Path();
-        pointsPX = new float[points.size() * 2];
-
+    private void changePath(List<Point> points) {
+        paths.clear();
+        Path path = new Path();
         float x = labelPlacePX;
         float y = (float) (height - labelPlacePX - pxProY * points.get(0).getY());
         path.moveTo(x, y);
-        pointsPX[0] = x;
-        pointsPX[1] = y;
+        pointsPX.add(new Pair<Float, Float>(x, y));
 
         for (int i = 1; i < points.size(); i++) {
             x = (float) (labelPlacePX + pxProX * (points.get(i).getX() - minX));
             y = (float) (height - labelPlacePX - pxProY * points.get(i).getY());
             path.lineTo(x, y);
-            pointsPX[i * 2] = x;
-            pointsPX[i * 2 + 1] = y;
+            pointsPX.add(new Pair<Float, Float>(x, y));
         }
+        paths.add(path);
 
+        fillPaths.clear();
+        //TODO:ability to set or reset fill for every provider
         if (enableFill) {
             //Construct path for fill
-            pathFill = new Path(path);
+            Path pathFill = new Path(path);
             pathFill.lineTo(
                     width - 1,
                     height - labelPlacePX - 1
@@ -311,10 +328,11 @@ public class GraphView extends View implements Observer {
                     height - labelPlacePX - 1
             );
             pathFill.close();
+            fillPaths.add(pathFill);
         }
     }
 
-    private void changeLabels(float labelPlacePX) {
+    private void changeLabels() {
         float lastLabelPX = labelPlacePX;
         Rect rect = new Rect();
         labelsX.clear();
@@ -322,10 +340,19 @@ public class GraphView extends View implements Observer {
 
         if (enableXAxis && enableLabels) {
             //Part for X axis
-            double scaleStepX = pointsProvider.getScaleStepX();
+            double minScaleStepX = maxX;
+            int indexLeadProviderX = -1;
+            for (int i = 0; i < providers.size(); i++) {
+                double stepX = providers.get(i).getScaleStepX();
+                if (stepX < minScaleStepX) {
+                    minScaleStepX = stepX;
+                    indexLeadProviderX = i;
+                }
+            }
+
             labelsX.clear();
-            for (double x = minX; x <= maxX; x += scaleStepX) {
-                String labelX = pointsProvider.getLabelX(x);
+            for (double x = minX; x <= maxX; x += minScaleStepX) {
+                String labelX = providers.get(indexLeadProviderX).getLabelX(x);
                 textPaint.getTextBounds(labelX, 0, labelX.length(), rect);
                 float pxX = labelPlacePX + (float) (x - minX) * pxProX - rect.width() / 2;
                 if ((pxX - lastLabelPX >= spacingPXX) && (pxX + rect.width() <= width)) {
@@ -338,15 +365,23 @@ public class GraphView extends View implements Observer {
 
         if (enableYAxis && enableLabels) {
             //Part for Y axis
-            double scaleStepY = pointsProvider.getScaleStepY();
+            double minScaleStepY = maxY;
+            int indexLeadProviderY = -1;
+            for (int i = 0; i < providers.size(); i++) {
+                double stepY = providers.get(i).getScaleStepY();
+                if (stepY < minScaleStepY) {
+                    minScaleStepY = stepY;
+                    indexLeadProviderY = i;
+                }
+            }
             labelsY.clear();
 
             textPaint.getTextBounds(ZERO_LABEL, 0, ZERO_LABEL.length(), rect);
             labelsY.add(new Pair<Float, String>(height - labelPlacePX + rect.height() / 2, ZERO_LABEL));
 
             lastLabelPX = height - labelPlacePX - rect.height() / 2;
-            for (double y = 0; y <= maxY; y += scaleStepY) {
-                String labelY = pointsProvider.getLabelY(y);
+            for (double y = 0; y <= maxY; y += minScaleStepY) {
+                String labelY = providers.get(indexLeadProviderY).getLabelY(y);
                 textPaint.getTextBounds(labelY, 0, labelY.length(), rect);
                 float pxY = height - labelPlacePX - pxProY * (float) y + rect.height() / 2;
                 if ((lastLabelPX - pxY >= spacingPXY) && (pxY - rect.height() >= 0)) {
@@ -365,23 +400,59 @@ public class GraphView extends View implements Observer {
      */
     @Override
     public void update(Observable observable, Object data) {
-        points = pointsProvider.getPoints();
-        if (points.isEmpty()) {
+
+        if (providers.isEmpty()) {
             clear();
             return;
         }
 
-        maxY = Collections.max(points, new Point.ComparatorY()).getY();
-        Collections.sort(points, new Point.ComparatorX());
-        maxX = points.get(points.size() - 1).getX();
-        minX = points.get(0).getX();
+
+        maxY = getMaxY();
+        maxX = getMaxX();
+        minX = getMinX();
         changePlot();
         invalidate();
     }
 
+    private double getMaxY() {
+        Point.ComparatorY comparator = new Point.ComparatorY();
+        double maxY = Collections.max(providers.get(0).getPoints(), comparator).getY();
+        for (int i = 1; i < providers.size(); i++) {
+            double y = Collections.max(providers.get(i).getPoints(), comparator).getY();
+            if (maxY < y) {
+                maxY = y;
+            }
+        }
+        return maxY;
+    }
+
+    private double getMaxX() {
+        Point.ComparatorX comparator = new Point.ComparatorX();
+        double maxX = Collections.max(providers.get(0).getPoints(), comparator).getX();
+        for (int i = 1; i < providers.size(); i++) {
+            double x = Collections.max(providers.get(i).getPoints(), comparator).getX();
+            if (maxX < x) {
+                maxX = x;
+            }
+        }
+        return maxX;
+    }
+
+    private double getMinX() {
+        Point.ComparatorX comparator = new Point.ComparatorX();
+        double minX = Collections.min(providers.get(0).getPoints(), comparator).getX();
+        for (int i = 1; i < providers.size(); i++) {
+            double x = Collections.min(providers.get(i).getPoints(), comparator).getX();
+            if (minX > x) {
+                minX = x;
+            }
+        }
+        return minX;
+    }
+
     private void clear() {
-        path = null;
-        pathFill = null;
+        paths.clear();
+        fillPaths.clear();
         labelsX.clear();
         labelsY.clear();
         invalidate();
@@ -392,16 +463,15 @@ public class GraphView extends View implements Observer {
         super.onSizeChanged(w, h, oldw, oldh);
         width = w;
         height = h;
-        if (points.isEmpty()) {
+        if (providers.isEmpty()) {
             return;
         }
         changePlot();
         invalidate();
     }
 
-    public void setPointsProvider(PointsProvider pointsProvider) {
-        this.pointsProvider = pointsProvider;
-        points = pointsProvider.getPoints();
+    public void addPointsProvider(PointsProvider pointsProvider) {
+        providers.add(pointsProvider);
         pointsProvider.addObserver(this);
         invalidate();
     }
