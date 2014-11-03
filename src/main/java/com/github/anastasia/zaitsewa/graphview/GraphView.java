@@ -15,6 +15,7 @@ import android.view.View;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
@@ -283,29 +284,36 @@ public class GraphView extends View implements Observer {
 
     private void changePlot(Plot plot) {
         List<Point> points = plot.provider.getPoints();
+
+        List<Pair<Float, Float>> pointsPX = new ArrayList<Pair<Float, Float>>();
         Path path = new Path();
+
         float x = labelPlacePX;
         float y = (float) (height - labelPlacePX - pxProY * points.get(0).getY());
         path.moveTo(x, y);
-        plot.pointsPX.add(new Pair<Float, Float>(x, y));
+        pointsPX.add(new Pair<Float, Float>(x, y));
 
         for (int i = 1; i < points.size(); i++) {
             x = (float) (labelPlacePX + pxProX * (points.get(i).getX() - minX));
             y = (float) (height - labelPlacePX - pxProY * points.get(i).getY());
             path.lineTo(x, y);
-            plot.pointsPX.add(new Pair<Float, Float>(x, y));
+            pointsPX.add(new Pair<Float, Float>(x, y));
         }
         plot.path = path;
+        plot.pointsPX = pointsPX;
 
         if (plot.style.isFillEnabled()) {
             Path fillPath = new Path(path);
+            float y0 = height - labelPlacePX - 1;
+            if (y != y0) {
+                fillPath.lineTo(
+                        pointsPX.get(pointsPX.size() - 1).first,
+                        y0
+                );
+            }
             fillPath.lineTo(
-                    width - 1,
-                    height - labelPlacePX - 1
-            );
-            fillPath.lineTo(
-                    labelPlacePX,
-                    height - labelPlacePX - 1
+                    pointsPX.get(0).first,
+                    y0
             );
             fillPath.close();
             plot.fillPath = fillPath;
@@ -359,38 +367,36 @@ public class GraphView extends View implements Observer {
         }
     }
 
-    private Plot getPlotWithMinScaleStepX() {
-        double minStepX = maxX;
-        int indexLeadPlotX = -1;
-        for (int i = 0; i < plots.size(); i++) {
-            double stepX = plots
-                    .get(i)
-                    .provider
-                    .getScaleStepX();
-            if (stepX < minStepX) {
-                minStepX = stepX;
-                indexLeadPlotX = i;
+    private Plot getPlotWithMinScaleStepX() throws IllegalArgumentException {
+        List<Plot> scaleStepNotZero = new ArrayList<Plot>();
+        for (Plot plot : plots) {
+            if (plot.provider.getScaleStepX() != 0) {
+                scaleStepNotZero.add(plot);
             }
         }
 
-        return plots.get(indexLeadPlotX);
+        if (scaleStepNotZero.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "At least one PointsProvider should return scaleStepX not equals 0"
+            );
+        }
+        return Collections.min(scaleStepNotZero, new ComparatorScaleStepX());
     }
 
-    private Plot getPlotWithMinScaleStepY() {
-        double minStepY = maxY;
-        int indexLeadPlotY = -1;
-        for (int i = 0; i < plots.size(); i++) {
-            double stepY = plots
-                    .get(i)
-                    .provider
-                    .getScaleStepY();
-            if (stepY < minStepY) {
-                minStepY = stepY;
-                indexLeadPlotY = i;
+    private Plot getPlotWithMinScaleStepY() throws IllegalArgumentException {
+        List<Plot> scaleStepNotZero = new ArrayList<Plot>();
+        for (Plot plot : plots) {
+            if (plot.provider.getScaleStepY() != 0) {
+                scaleStepNotZero.add(plot);
             }
         }
 
-        return plots.get(indexLeadPlotY);
+        if (scaleStepNotZero.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "At least one PointsProvider should return scaleStepY not equals 0"
+            );
+        }
+        return Collections.min(scaleStepNotZero, new ComparatorScaleStepY());
     }
 
     /**
@@ -402,9 +408,11 @@ public class GraphView extends View implements Observer {
     @Override
     public void update(Observable observable, Object data) {
 
-        if (plots.isEmpty()) {
-            clear();
-            return;
+        for (Plot plot : plots) {
+            if (plot.provider.getPoints().isEmpty()) {
+                clear();
+                return;
+            }
         }
 
         maxY = getMaxY();
@@ -416,7 +424,13 @@ public class GraphView extends View implements Observer {
 
     private double getMaxY() {
         Point.ComparatorY comparator = new Point.ComparatorY();
-        double maxY = Collections.max(plots.get(0).provider.getPoints(), comparator).getY();
+        double maxY = Collections.max(
+                plots
+                        .get(0)
+                        .provider
+                        .getPoints(),
+                comparator
+        ).getY();
         for (int i = 1; i < plots.size(); i++) {
             double y = Collections.max(plots.get(i).provider.getPoints(), comparator).getY();
             if (maxY < y) {
@@ -464,9 +478,14 @@ public class GraphView extends View implements Observer {
         super.onSizeChanged(w, h, oldw, oldh);
         width = w;
         height = h;
-        if (plots.isEmpty()) {
-            return;
+
+        for (Plot plot : plots) {
+            if (plot.provider.getPoints().isEmpty()) {
+                clear();
+                return;
+            }
         }
+
         changeGraph();
         invalidate();
     }
@@ -574,13 +593,27 @@ public class GraphView extends View implements Observer {
     private class Plot {
         PointsProvider provider;
         PlotStyle style;
-        Path path;
-        Path fillPath;
-        List<Pair<Float, Float>> pointsPX;
+        Path path = new Path();
+        Path fillPath = new Path();
+        List<Pair<Float, Float>> pointsPX = Collections.EMPTY_LIST;
 
         Plot(PointsProvider provider, PlotStyle style) {
             this.provider = provider;
             this.style = style;
+        }
+    }
+
+    private class ComparatorScaleStepX implements Comparator<Plot> {
+        @Override
+        public int compare(Plot lhs, Plot rhs) {
+            return Double.compare(lhs.provider.getScaleStepX(), rhs.provider.getScaleStepX());
+        }
+    }
+
+    private class ComparatorScaleStepY implements Comparator<Plot> {
+        @Override
+        public int compare(Plot lhs, Plot rhs) {
+            return Double.compare(lhs.provider.getScaleStepY(), rhs.provider.getScaleStepY());
         }
     }
 }
