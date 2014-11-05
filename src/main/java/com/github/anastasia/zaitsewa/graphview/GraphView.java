@@ -19,6 +19,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.TreeSet;
 
 /**
  * Class for drawing custom Graph
@@ -368,35 +369,30 @@ public class GraphView extends View implements Observer {
     }
 
     private Plot getPlotWithMinScaleStepX() throws IllegalArgumentException {
-        List<Plot> scaleStepNotZero = new ArrayList<Plot>();
-        for (Plot plot : plots) {
-            if (plot.provider.getScaleStepX() != 0) {
-                scaleStepNotZero.add(plot);
-            }
-        }
+        TreeSet<Plot> plotTreeSet = new TreeSet<Plot>(new ComparatorScaleStepX());
+        plotTreeSet.addAll(plots);
+        Plot first = plotTreeSet.first();
 
-        if (scaleStepNotZero.isEmpty()) {
+        if (first.provider.getScaleStepX() == 0) {
             throw new IllegalArgumentException(
                     "At least one PointsProvider should return scaleStepX not equals 0"
             );
         }
-        return Collections.min(scaleStepNotZero, new ComparatorScaleStepX());
+
+        return first;
     }
 
     private Plot getPlotWithMinScaleStepY() throws IllegalArgumentException {
-        List<Plot> scaleStepNotZero = new ArrayList<Plot>();
-        for (Plot plot : plots) {
-            if (plot.provider.getScaleStepY() != 0) {
-                scaleStepNotZero.add(plot);
-            }
-        }
+        TreeSet<Plot> plotTreeSet = new TreeSet<Plot>(new ComparatorScaleStepY());
+        plotTreeSet.addAll(plots);
+        Plot first = plotTreeSet.first();
 
-        if (scaleStepNotZero.isEmpty()) {
+        if (first.provider.getScaleStepY() == 0) {
             throw new IllegalArgumentException(
                     "At least one PointsProvider should return scaleStepY not equals 0"
             );
         }
-        return Collections.min(scaleStepNotZero, new ComparatorScaleStepY());
+        return first;
     }
 
     /**
@@ -606,6 +602,15 @@ public class GraphView extends View implements Observer {
     private class ComparatorScaleStepX implements Comparator<Plot> {
         @Override
         public int compare(Plot lhs, Plot rhs) {
+            if (lhs.provider.getScaleStepX() == rhs.provider.getScaleStepX()){
+                return 0;
+            }
+            if (lhs.provider.getScaleStepX() == 0){
+                return 1;
+            }
+            if (rhs.provider.getScaleStepX() == 0){
+                return -1;
+            }
             return Double.compare(lhs.provider.getScaleStepX(), rhs.provider.getScaleStepX());
         }
     }
@@ -613,6 +618,15 @@ public class GraphView extends View implements Observer {
     private class ComparatorScaleStepY implements Comparator<Plot> {
         @Override
         public int compare(Plot lhs, Plot rhs) {
+            if (lhs.provider.getScaleStepY() == rhs.provider.getScaleStepY()){
+                return 0;
+            }
+            if (lhs.provider.getScaleStepY() == 0){
+                return 1;
+            }
+            if (rhs.provider.getScaleStepY() == 0){
+                return -1;
+            }
             return Double.compare(lhs.provider.getScaleStepY(), rhs.provider.getScaleStepY());
         }
     }
