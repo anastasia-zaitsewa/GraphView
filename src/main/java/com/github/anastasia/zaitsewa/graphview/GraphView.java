@@ -230,7 +230,7 @@ public class GraphView extends View implements Observer {
                             textPaint
                     );
                     //Draw Levels
-                    float levelY = labelY.first - textHeight / 2;
+                    float levelY = labelY.first - textHeight / 2 + 1;
                     canvas.drawLine(
                             labelPlacePX,
                             levelY,
@@ -252,7 +252,7 @@ public class GraphView extends View implements Observer {
             );
 
             if (enableLabels) {
-                textPaint.setTextAlign(Paint.Align.LEFT);
+                textPaint.setTextAlign(Paint.Align.CENTER);
                 for (Pair<Float, String> labelX : labelsX) {
                     canvas.drawText(
                             labelX.second,
@@ -289,7 +289,7 @@ public class GraphView extends View implements Observer {
         List<Pair<Float, Float>> pointsPX = new ArrayList<Pair<Float, Float>>();
         Path path = new Path();
 
-        float x = labelPlacePX;
+        float x = (float) (labelPlacePX + pxProX * (points.get(0).getX() - minX));
         float y = (float) (height - labelPlacePX - pxProY * points.get(0).getY());
         path.moveTo(x, y);
         pointsPX.add(new Pair<Float, Float>(x, y));
@@ -335,9 +335,10 @@ public class GraphView extends View implements Observer {
             for (double x = minX; x <= maxX; x += minScaleStepX) {
                 String labelX = leadPlotX.provider.getLabelX(x);
                 textPaint.getTextBounds(labelX, 0, labelX.length(), rect);
-                float pxX = labelPlacePX + (float) (x - minX) * pxProX - rect.width() / 2;
-                if ((pxX - lastLabelPX >= spacingPXX) && (pxX + rect.width() <= width)) {
-                    lastLabelPX = pxX + rect.width();
+                float pxX = labelPlacePX + (float) (x - minX) * pxProX;
+                float pxXFit = pxX - rect.width() / 2;
+                if ((pxXFit - lastLabelPX >= spacingPXX) && (pxX <= width)) {
+                    lastLabelPX = pxX;
                     labelsX.add(new Pair<Float, String>(pxX, labelX));
                 }
             }
