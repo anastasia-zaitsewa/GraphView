@@ -230,7 +230,7 @@ public class GraphView extends View implements Observer {
                             textPaint
                     );
                     //Draw Levels
-                    float levelY = labelY.first - textHeight / 2 + 1;
+                    float levelY = labelY.first - textHeight / 2;
                     canvas.drawLine(
                             labelPlacePX,
                             levelY,
@@ -352,7 +352,7 @@ public class GraphView extends View implements Observer {
 
             textPaint.getTextBounds(ZERO_LABEL, 0, ZERO_LABEL.length(), rect);
             labelsY.add(new Pair<Float, String>(
-                    height - labelPlacePX + rect.height() / 2,
+                    height - labelPlacePX + rect.height() / 2 - 1,
                     ZERO_LABEL
             ));
 
@@ -363,7 +363,7 @@ public class GraphView extends View implements Observer {
                 float pxY = height - labelPlacePX - pxProY * (float) y + rect.height() / 2;
                 if ((lastLabelPX - pxY >= spacingPXY) && (pxY - rect.height() >= 0)) {
                     lastLabelPX = pxY - rect.height();
-                    labelsY.add(new Pair<Float, String>(pxY, labelY));
+                    labelsY.add(new Pair<Float, String>(pxY - 1, labelY));
                 }
             }
         }
