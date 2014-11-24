@@ -6,6 +6,7 @@ import android.graphics.drawable.Drawable;
 
 /**
  * Contains colors for lines, fill area; gives you ability to set or reset filling for plot
+ * Default style: without points; with fill (transparent black) below plot; black plot;
  */
 public class PlotStyle {
     private static final int DEFAULT_LINE_COLOR = Color.BLACK;
