@@ -1,18 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <declare-styleable name="GraphView">
-        <attr name="graphView_lineColor" format="color"/>
         <attr name="graphView_spacingX" format="dimension"/>
         <attr name="graphView_spacingY" format="dimension"/>
         <attr name="graphView_textColor" format="color"/>
         <attr name="graphView_textSize" format="dimension"/>
         <attr name="graphView_labelPlace" format="dimension"/>
-        <attr name="graphView_fillColor" format="color"/>
         <attr name="graphView_levelColor" format="color"/>
-        <attr name="graphView_pointDrawable" format="reference"/>
+        <attr name="graphView_axisColor" format="color"/>
         <attr name="graphView_enableXAxis" format="boolean"/>
         <attr name="graphView_enableYAxis" format="boolean"/>
         <attr name="graphView_enableLabels" format="boolean"/>
-        <attr name="graphView_enableFill" format="boolean"/>
     </declare-styleable>
 </resources>
