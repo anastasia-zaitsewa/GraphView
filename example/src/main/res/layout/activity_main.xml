@@ -1,0 +1,10 @@
+<com.github.anastasia.zaitsewa.graphview.GraphView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/graphView"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_margin="8dp"
+    app:graphView_labelPlace="25dp"
+    app:graphView_levelColor="#44888888"
+    tools:context=".MainActivity" />

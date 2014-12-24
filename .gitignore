@@ -20,8 +20,6 @@ obj/
 # Local configuration file (sdk path, etc)
 local.properties
 
-project.properties
-
 #Intellij IDEA
 *.iml
 .idea
@@ -35,3 +33,7 @@ gen-external-apklibs/
 #Gradle generated files
 build/
 .gradle
+
+.idea/workspace.xml
+.idea/libraries
+.DS_Store
