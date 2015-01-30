@@ -329,17 +329,17 @@ public class GraphView extends View implements Observer {
 
         if (enableXAxis && enableLabels) {
 
-            Plot leadPlotX = getPlotWithMinScaleStepX();
-            double minScaleStepX = leadPlotX.provider.getScaleStepX();
+            Plot leadPlotX = getPlotWithMaxScaleStepX();
+            double maxScaleStepX = leadPlotX.provider.getScaleStepX();
 
-            for (double x = minX; x <= maxX; x += minScaleStepX) {
+            for (double x = minX; x <= maxX; x += maxScaleStepX) {
                 String labelX = leadPlotX.provider.getLabelX(x);
                 textPaint.getTextBounds(labelX, 0, labelX.length(), rect);
                 float pxX = labelPlacePX + (float) (x - minX) * pxProX;
                 float pxXFit = pxX - rect.width() / 2;
                 if ((pxXFit - lastLabelPX >= spacingPXX) && (pxX <= width)) {
                     lastLabelPX = pxX;
-                    labelsX.add(new Pair<Float, String>(pxX, labelX));
+                    labelsX.add(new Pair<>(pxX, labelX));
                 }
             }
             textHeight = rect.height();
@@ -347,53 +347,53 @@ public class GraphView extends View implements Observer {
 
         if (enableYAxis && enableLabels) {
 
-            Plot leadPlotY = getPlotWithMinScaleStepY();
-            double minScaleStepY = leadPlotY.provider.getScaleStepY();
+            Plot leadPlotY = getPlotWithMaxScaleStepY();
+            double maxScaleStepY = leadPlotY.provider.getScaleStepY();
 
             textPaint.getTextBounds(ZERO_LABEL, 0, ZERO_LABEL.length(), rect);
-            labelsY.add(new Pair<Float, String>(
+            labelsY.add(new Pair<>(
                     height - labelPlacePX + rect.height() / 2 - 1,
                     ZERO_LABEL
             ));
 
             lastLabelPX = height - labelPlacePX - rect.height() / 2;
-            for (double y = 0; y <= maxY; y += minScaleStepY) {
+            for (double y = 0; y <= maxY; y += maxScaleStepY) {
                 String labelY = leadPlotY.provider.getLabelY(y);
                 textPaint.getTextBounds(labelY, 0, labelY.length(), rect);
                 float pxY = height - labelPlacePX - pxProY * (float) y + rect.height() / 2;
                 if ((lastLabelPX - pxY >= spacingPXY) && (pxY - rect.height() >= 0)) {
                     lastLabelPX = pxY - rect.height();
-                    labelsY.add(new Pair<Float, String>(pxY - 1, labelY));
+                    labelsY.add(new Pair<>(pxY - 1, labelY));
                 }
             }
         }
     }
 
-    private Plot getPlotWithMinScaleStepX() throws IllegalArgumentException {
-        TreeSet<Plot> plotTreeSet = new TreeSet<Plot>(new ComparatorScaleStepX());
+    private Plot getPlotWithMaxScaleStepX() throws IllegalArgumentException {
+        TreeSet<Plot> plotTreeSet = new TreeSet<>(new ComparatorScaleStepX());
         plotTreeSet.addAll(plots);
-        Plot first = plotTreeSet.first();
+        Plot last = plotTreeSet.last();
 
-        if (first.provider.getScaleStepX() == 0) {
+        if (last.provider.getScaleStepX() == 0) {
             throw new IllegalArgumentException(
                     "At least one PointsProvider should return scaleStepX not equals 0"
             );
         }
 
-        return first;
+        return last;
     }
 
-    private Plot getPlotWithMinScaleStepY() throws IllegalArgumentException {
-        TreeSet<Plot> plotTreeSet = new TreeSet<Plot>(new ComparatorScaleStepY());
+    private Plot getPlotWithMaxScaleStepY() throws IllegalArgumentException {
+        TreeSet<Plot> plotTreeSet = new TreeSet<>(new ComparatorScaleStepY());
         plotTreeSet.addAll(plots);
-        Plot first = plotTreeSet.first();
+        Plot last = plotTreeSet.last();
 
-        if (first.provider.getScaleStepY() == 0) {
+        if (last.provider.getScaleStepY() == 0) {
             throw new IllegalArgumentException(
                     "At least one PointsProvider should return scaleStepY not equals 0"
             );
         }
-        return first;
+        return last;
     }
 
     /**
@@ -603,15 +603,6 @@ public class GraphView extends View implements Observer {
     private class ComparatorScaleStepX implements Comparator<Plot> {
         @Override
         public int compare(Plot lhs, Plot rhs) {
-            if (lhs.provider.getScaleStepX() == rhs.provider.getScaleStepX()){
-                return 0;
-            }
-            if (lhs.provider.getScaleStepX() == 0){
-                return 1;
-            }
-            if (rhs.provider.getScaleStepX() == 0){
-                return -1;
-            }
             return Double.compare(lhs.provider.getScaleStepX(), rhs.provider.getScaleStepX());
         }
     }
@@ -619,15 +610,6 @@ public class GraphView extends View implements Observer {
     private class ComparatorScaleStepY implements Comparator<Plot> {
         @Override
         public int compare(Plot lhs, Plot rhs) {
-            if (lhs.provider.getScaleStepY() == rhs.provider.getScaleStepY()){
-                return 0;
-            }
-            if (lhs.provider.getScaleStepY() == 0){
-                return 1;
-            }
-            if (rhs.provider.getScaleStepY() == 0){
-                return -1;
-            }
             return Double.compare(lhs.provider.getScaleStepY(), rhs.provider.getScaleStepY());
         }
     }
